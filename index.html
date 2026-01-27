@@ -14,16 +14,29 @@
         .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; color: var(--brand-grey); font-size: 1.2em; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; }
+        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; overflow: hidden; }
         .item-card:active { transform: translateY(2px); border-bottom: 0; }
-        .price-tag { color: var(--brand-green); font-weight: 600; }
         
+        /* Photo Styling */
+        .item-img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; font-size: 40px; display: flex; align-items: center; justify-content: center; }
+        
+        .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
+        
+        .budget-box { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid var(--brand-grey); }
+        .budget-input { width: 70px; padding: 5px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 16px; }
+        .remaining { font-weight: bold; font-size: 1.3em; color: var(--brand-green); }
+        .over-budget { color: var(--brand-red) !important; }
+
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
         .btn-pay { background: var(--brand-green); }
-        .btn-clear { background: var(--brand-red); margin-top: 5px; font-size: 12px; opacity: 0.8; }
+        .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
         .btn-report { background: var(--brand-grey); margin-top: 40px; }
-        #cart-items { min-height: 80px; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
+        
+        #cart-items { min-height: 50px; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
+        .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f9f9f9; }
+        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 1; }
+        
         .out-of-stock { opacity: 0.3; grayscale: 1; pointer-events: none; }
     </style>
 </head>
@@ -32,15 +45,24 @@
 <div class="menu-container" id="menu-container">Loading Tuckshop...</div>
 
 <div class="receipt">
-    <h2>Order Summary</h2>
-    <div id="cart-items"></div>
-    <div style="display:flex; justify-content: space-between; align-items: baseline;">
-        <h3>Total</h3>
-        <h2 style="color: var(--brand-green);">$<span id="total-price">0.00</span></h2>
+    <h2>Customer Order</h2>
+    
+    <div class="budget-box">
+        <span>Customer Budget: £</span>
+        <input type="number" step="0.10" value="2.00" class="budget-input" id="budget-input" oninput="updateCalculations()">
+        <div style="margin-top:8px;">Remaining: <span id="remaining-val" class="remaining">£2.00</span></div>
     </div>
-    <button class="btn btn-pay" onclick="completeSale()">Complete Sale</button>
-    <button class="btn btn-clear" onclick="resetCart()">Cancel Order</button>
-    <button class="btn btn-report" onclick="downloadReport()">Download Daily Report</button>
+
+    <div id="cart-items"></div>
+    
+    <div style="display:flex; justify-content: space-between; align-items: baseline; border-top: 2px solid #eee; padding-top: 10px;">
+        <h3>Total To Pay</h3>
+        <h2 id="total-display" style="color: var(--brand-grey);">£0.00</h2>
+    </div>
+
+    <button class="btn btn-pay" onclick="completeSale()">COMPLETE SALE</button>
+    <button class="btn btn-clear" onclick="resetCart()">CANCEL ORDER</button>
+    <button class="btn btn-report" onclick="downloadReport()">DOWNLOAD DAILY REPORT</button>
 </div>
 
 <script>
@@ -48,7 +70,6 @@
     let sessionTotalSales = 0;
     let itemsSoldList = [];
     let cart = [];
-    let cartTotal = 0;
     const categories = ["Sweets", "Drinks", "Crisps", "Other", "Pick n Mix"];
 
     async function loadInventory() {
@@ -64,75 +85,29 @@
     function renderMenu() {
         const container = document.getElementById('menu-container');
         container.innerHTML = '';
-
         categories.forEach(cat => {
             const section = document.createElement('div');
             section.className = 'cat-section';
             section.innerHTML = `<div class="cat-header">${cat}</div>`;
-            
             const grid = document.createElement('div');
             grid.className = 'grid';
-
+            
             const catItems = inventory.filter(i => i.category === cat);
             catItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''}`;
-                card.innerHTML = `<div style="font-size: 30px; margin-bottom:5px;">${item.img}</div>
+                
+                // Check if img is a URL or an Emoji
+                const isUrl = item.img.startsWith('http');
+                const imgHtml = isUrl ? `<img src="${item.img}" class="item-img" alt="${item.name}">` : `<div class="item-img">${item.img}</div>`;
+
+                card.innerHTML = `${imgHtml}
                                   <b>${item.name}</b><br>
-                                  <span class="price-tag">$${item.price.toFixed(2)}</span><br>
+                                  <span class="price-tag">£${item.price.toFixed(2)}</span><br>
                                   <small style="color: #999">Stock: ${item.stock}</small>`;
                 card.onclick = () => addToCart(item);
                 grid.appendChild(card);
             });
-
             if (catItems.length > 0) {
                 section.appendChild(grid);
-                container.appendChild(section);
-            }
-        });
-    }
-
-    function addToCart(item) {
-        cart.push(item);
-        cartTotal += item.price;
-        document.getElementById('total-price').innerText = cartTotal.toFixed(2);
-        const itemLine = document.createElement('div');
-        itemLine.style.display = "flex";
-        itemLine.style.justifyContent = "space-between";
-        itemLine.innerHTML = `<span>${item.name}</span> <span>$${item.price.toFixed(2)}</span>`;
-        document.getElementById('cart-items').appendChild(itemLine);
-    }
-
-    function completeSale() {
-        if(cart.length === 0) return;
-        cart.forEach(cartItem => {
-            const stockItem = inventory.find(i => i.id === cartItem.id);
-            stockItem.stock -= 1;
-            itemsSoldList.push(cartItem.name);
-        });
-        sessionTotalSales += cartTotal;
-        resetCart();
-        renderMenu();
-    }
-
-    function resetCart() {
-        cart = [];
-        cartTotal = 0;
-        document.getElementById('total-price').innerText = "0.00";
-        document.getElementById('cart-items').innerHTML = "";
-    }
-
-    function downloadReport() {
-        let report = `TUCKSHOP SALES REPORT\nDate: ${new Date().toLocaleString()}\n==========================\nTOTAL REVENUE: $${sessionTotalSales.toFixed(2)}\nTOTAL ITEMS SOLD: ${itemsSoldList.length}\n\nINVENTORY STATUS:\n`;
-        inventory.forEach(i => { report += `- [${i.category}] ${i.name}: ${i.stock} remaining\n`; });
-        const blob = new Blob([report], { type: 'text/plain' });
-        const anchor = document.createElement('a');
-        anchor.download = `tuckshop-report.txt`;
-        anchor.href = URL.createObjectURL(blob);
-        anchor.click();
-    }
-
-    loadInventory();
-</script>
-</body>
-</html>
+                container
