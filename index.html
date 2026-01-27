@@ -15,38 +15,37 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
         
         /* Item Card */
-        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; overflow: hidden; }
+        .item-card { background: white; padding: 12px 12px 40px 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; overflow: hidden; }
         .item-card:active { transform: translateY(1px); }
         
         /* Count Badge */
-        .count-badge { position: absolute; top: 5px; right: 5px; background: var(--brand-red); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
+        .count-badge { position: absolute; top: 5px; right: 5px; background: var(--brand-red); color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
         
-        /* The Clear Remove Button */
-        .remove-label { position: absolute; bottom: 0; left: 0; right: 0; background: #f0f0f0; color: var(--brand-red); font-family: 'League Spartan'; font-size: 10px; padding: 4px 0; border-top: 1px solid #ddd; font-weight: bold; transition: 0.2s; }
-        .remove-label:hover { background: var(--brand-red); color: white; }
+        /* Large Remove Button */
+        .remove-label { position: absolute; bottom: 0; left: 0; right: 0; background: #e0e0e0; color: #555; font-family: 'League Spartan'; font-size: 13px; padding: 10px 0; border-top: 1px solid #ccc; font-weight: bold; transition: 0.1s; z-index: 3; }
+        .remove-label:active { background: var(--brand-red); color: white; }
 
         .item-img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
-        .price-tag { color: var(--brand-green); font-weight: 600; display: block; margin-bottom: 10px; }
+        .price-tag { color: var(--brand-green); font-weight: 600; display: block; }
         
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
-        
         .status-box { padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 15px; transition: 0.3s; border: 2px solid rgba(0,0,0,0.1); }
         .status-green { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
         .status-red { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
         
-        .pos-input { width: 100px; padding: 8px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 22px; text-align: center; border-radius: 4px; margin: 10px 0; }
+        .pos-input { width: 110px; padding: 8px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 24px; text-align: center; border-radius: 4px; margin: 10px 0; }
         .remaining-val { font-weight: bold; font-size: 2.2em; display: block; }
         
         .cash-btns { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .cash-btn { background: var(--brand-grey); color: white; border: none; padding: 10px 2px; border-radius: 4px; cursor: pointer; font-size: 13px; font-family: 'League Spartan'; }
+        .cash-btn { background: var(--brand-grey); color: white; border: none; padding: 12px 2px; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: 'League Spartan'; }
         
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
-        .btn-next { background: var(--brand-green); font-size: 1.1em; }
+        .btn-next { background: var(--brand-green); font-size: 1.2em; }
         .btn-report { background: #555; margin-top: 30px; font-size: 12px; }
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
         
-        .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
-        .remove-btn-small { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; line-height: 1; margin-left: 10px; }
+        .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
+        .remove-btn-small { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; margin-left: 10px; }
         .summary-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px; }
     </style>
 </head>
@@ -101,7 +100,6 @@
     function renderMenu() {
         const mainMenu = document.getElementById('main-menu');
         mainMenu.innerHTML = '';
-        
         const counts = {};
         cart.forEach(name => counts[name] = (counts[name] || 0) + 1);
 
@@ -163,9 +161,7 @@
             const item = inventory.find(i => i.name === name);
             if (item) {
                 total += item.price;
-                if (!groupedCart[name]) {
-                    groupedCart[name] = { price: item.price, count: 0 };
-                }
+                if (!groupedCart[name]) { groupedCart[name] = { price: item.price, count: 0 }; }
                 groupedCart[name].count++;
             }
         });
