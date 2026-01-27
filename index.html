@@ -3,7 +3,7 @@
 <head>
     <title>Tuckshop POS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="Drumahoe Tuckshop.png" type="image/png">
+    <link rel="icon" href="icon.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Hind+Guntur:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { --brand-grey: #354348; --brand-green: #93c022; --brand-red: #e4012c; --background: #f8f9fa; }
@@ -13,8 +13,12 @@
         .cat-section { margin-bottom: 30px; }
         .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; font-size: 1.2em; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; }
+        
+        /* Item Card & Badge */
+        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; }
         .item-card:active { transform: translateY(2px); border-bottom: 0; }
+        .count-badge { position: absolute; top: -5px; right: -5px; background: var(--brand-red); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
         .item-img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
@@ -33,18 +37,18 @@
         .btn-next { background: var(--brand-green); font-size: 1.1em; }
         .btn-report { background: #555; margin-top: 30px; font-size: 12px; }
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
+        
         .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
-        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; line-height: 1; }
+        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; line-height: 1; margin-left: 10px; }
         .summary-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div class="menu-container" id="main-menu">Loading Tuckshop...</div>
+<div class="menu-container" id="main-menu">Loading...</div>
 
 <div class="receipt">
     <h2>Checkout</h2>
-    
     <div id="display-box" class="status-box status-green">
         <b>Customer Money:</b><br>
         £<input type="number" step="0.10" value="0.00" class="pos-input" id="cash-input" oninput="updateCalculations()">
@@ -62,9 +66,7 @@
     <div id="cart-items"></div>
 
     <div style="border-top: 2px solid #eee; padding-top: 10px;">
-        <div class="summary-row">
-            <span>Total Items:</span><h3 id="total-display">£0.00</h3>
-        </div>
+        <div class="summary-row"><span>Total Items:</span><h3 id="total-display">£0.00</h3></div>
         <div class="summary-row" style="color: var(--brand-green); font-weight: bold; border-top: 1px solid #f0f0f0; margin-top: 5px; padding-top: 5px;">
             <span>Change Due:</span><h3 id="change-summary">£0.00</h3>
         </div>
@@ -72,14 +74,13 @@
 
     <button class="btn btn-next" onclick="completeSale()">NEXT CUSTOMER</button>
     <button class="btn btn-clear" onclick="resetCart()">CLEAR ALL</button>
-    
     <button class="btn btn-report" onclick="downloadSalesReport()">📊 END DAY REPORT</button>
 </div>
 
 <script>
     let inventory = [];
-    let cart = [];
-    let sessionSales = [];
+    let cart = []; // Array of product names
+    let sessionSales = []; 
     const categories = ["Sweets", "Pick n Mix", "Drinks", "Crisps", "Other"];
 
     async function loadInventory() {
@@ -93,31 +94,50 @@
     function renderMenu() {
         const mainMenu = document.getElementById('main-menu');
         mainMenu.innerHTML = '';
+        
+        // Count items currently in cart to show on badges
+        const counts = {};
+        cart.forEach(name => counts[name] = (counts[name] || 0) + 1);
+
         categories.forEach(cat => {
+            const catItems = inventory.filter(i => i.category === cat);
+            if (catItems.length === 0) return;
+
             const section = document.createElement('div');
             section.className = 'cat-section';
             section.innerHTML = `<div class="cat-header">${cat}</div>`;
             const grid = document.createElement('div');
             grid.className = 'grid';
-            inventory.filter(i => i.category === cat).forEach(item => {
+
+            catItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-                card.innerHTML = `<img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Image'"><b>${item.name}</b><br><span class="price-tag">£${item.price.toFixed(2)}</span>`;
-                card.onclick = () => addToCart(item);
+                const countBadge = counts[item.name] ? `<div class="count-badge">${counts[item.name]}</div>` : '';
+                
+                card.innerHTML = `
+                    ${countBadge}
+                    <img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Item'">
+                    <b>${item.name}</b><br>
+                    <span class="price-tag">£${item.price.toFixed(2)}</span>
+                `;
+                card.onclick = () => addToCart(item.name);
                 grid.appendChild(card);
             });
             section.appendChild(grid); mainMenu.appendChild(section);
         });
     }
 
-    function addToCart(item) {
-        cart.push({...item, cartId: Date.now() + Math.random()});
+    function addToCart(name) {
+        cart.push(name);
         updateCalculations();
+        renderMenu(); // Redraw menu to update badges
     }
 
-    function removeFromCart(cartId) {
-        cart = cart.filter(i => i.cartId !== cartId);
+    function removeFromCart(name) {
+        const index = cart.lastIndexOf(name);
+        if (index > -1) cart.splice(index, 1);
         updateCalculations();
+        renderMenu();
     }
 
     function setCash(amount) {
@@ -126,7 +146,20 @@
     }
 
     function updateCalculations() {
-        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        let total = 0;
+        const groupedCart = {};
+        
+        cart.forEach(name => {
+            const item = inventory.find(i => i.name === name);
+            if (item) {
+                total += item.price;
+                if (!groupedCart[name]) {
+                    groupedCart[name] = { price: item.price, count: 0 };
+                }
+                groupedCart[name].count++;
+            }
+        });
+
         const cashIn = parseFloat(document.getElementById('cash-input').value) || 0;
         const remaining = cashIn - total;
 
@@ -149,17 +182,24 @@
 
         const cartDiv = document.getElementById('cart-items');
         cartDiv.innerHTML = '';
-        cart.forEach(item => {
+        for (const [name, data] of Object.entries(groupedCart)) {
             const line = document.createElement('div');
             line.className = 'cart-line';
-            line.innerHTML = `<span>${item.name}</span> <span>£${item.price.toFixed(2)} <button class="remove-btn" onclick="removeFromCart(${item.cartId})">✕</button></span>`;
+            line.innerHTML = `
+                <span><b>${data.count}x</b> ${name}</span>
+                <span>£${(data.price * data.count).toFixed(2)} 
+                <button class="remove-btn" onclick="removeFromCart('${name}')">✕</button></span>
+            `;
             cartDiv.appendChild(line);
-        });
+        }
     }
 
     function completeSale() {
         if(cart.length === 0) return;
-        cart.forEach(item => { sessionSales.push({ name: item.name, price: item.price }); });
+        cart.forEach(name => {
+            const item = inventory.find(i => i.name === name);
+            sessionSales.push({ name: item.name, price: item.price });
+        });
         resetCart();
     }
 
@@ -167,6 +207,7 @@
         cart = []; 
         document.getElementById('cash-input').value = "0.00";
         updateCalculations(); 
+        renderMenu();
     }
 
     function downloadSalesReport() {
@@ -174,7 +215,7 @@
         const totalMoney = sessionSales.reduce((sum, item) => sum + item.price, 0);
         const counts = {};
         sessionSales.forEach(item => { counts[item.name] = (counts[item.name] || 0) + 1; });
-        let report = `TUCKSHOP SALES REPORT\n------------------------------\nTOTAL MONEY IN TIN: £${totalMoney.toFixed(2)}\nITEMS SOLD: ${sessionSales.length}\n------------------------------\n`;
+        let report = `TUCKSHOP SALES REPORT\n------------------------------\nTOTAL REVENUE: £${totalMoney.toFixed(2)}\nITEMS SOLD: ${sessionSales.length}\n------------------------------\n`;
         for (const [name, count] of Object.entries(counts)) { report += `${name}: ${count}\n`; }
         const blob = new Blob([report], { type: 'text/plain' });
         const anchor = document.createElement('a');
