@@ -14,17 +14,20 @@
         .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; font-size: 1.2em; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
         
-        /* Item Card & Badge */
-        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; }
+        /* Item Card */
+        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; overflow: hidden; }
         .item-card:active { transform: translateY(1px); }
-        .count-badge { position: absolute; top: -5px; right: -5px; background: var(--brand-red); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); pointer-events: none; }
         
-        /* The Quick Minus Button */
-        .minus-btn { position: absolute; bottom: 8px; left: 8px; background: #eee; color: #555; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid #ccc; font-size: 18px; line-height: 1; transition: 0.2s; }
-        .minus-btn:hover { background: var(--brand-red); color: white; border-color: var(--brand-red); }
+        /* Count Badge */
+        .count-badge { position: absolute; top: 5px; right: 5px; background: var(--brand-red); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
+        
+        /* The Clear Remove Button */
+        .remove-label { position: absolute; bottom: 0; left: 0; right: 0; background: #f0f0f0; color: var(--brand-red); font-family: 'League Spartan'; font-size: 10px; padding: 4px 0; border-top: 1px solid #ddd; font-weight: bold; transition: 0.2s; }
+        .remove-label:hover { background: var(--brand-red); color: white; }
 
-        .item-img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
-        .price-tag { color: var(--brand-green); font-weight: 600; }
+        .item-img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
+        .price-tag { color: var(--brand-green); font-weight: 600; display: block; margin-bottom: 10px; }
+        
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
         
         .status-box { padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 15px; transition: 0.3s; border: 2px solid rgba(0,0,0,0.1); }
@@ -43,13 +46,13 @@
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
         
         .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
-        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; line-height: 1; margin-left: 10px; }
+        .remove-btn-small { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; line-height: 1; margin-left: 10px; }
         .summary-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div id="main-menu" class="menu-container">Loading...</div>
+<div id="main-menu" class="menu-container">Loading Tuckshop...</div>
 
 <div class="receipt">
     <h2>Checkout</h2>
@@ -116,15 +119,16 @@
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 const currentCount = counts[item.name] || 0;
+                
                 const countBadge = currentCount > 0 ? `<div class="count-badge">${currentCount}</div>` : '';
-                const minusBtn = currentCount > 0 ? `<div class="minus-btn" onclick="event.stopPropagation(); removeFromCart('${item.name}')">–</div>` : '';
+                const removeLabel = currentCount > 0 ? `<div class="remove-label" onclick="event.stopPropagation(); removeFromCart('${item.name}')">REMOVE ONE</div>` : '';
                 
                 card.innerHTML = `
                     ${countBadge}
                     <img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Item'">
                     <b>${item.name}</b><br>
                     <span class="price-tag">£${item.price.toFixed(2)}</span>
-                    ${minusBtn}
+                    ${removeLabel}
                 `;
                 card.onclick = () => addToCart(item.name);
                 grid.appendChild(card);
@@ -194,7 +198,7 @@
             line.innerHTML = `
                 <span><b>${data.count}x</b> ${name}</span>
                 <span>£${(data.price * data.count).toFixed(2)} 
-                <button class="remove-btn" onclick="removeFromCart('${name}')">✕</button></span>
+                <button class="remove-btn-small" onclick="removeFromCart('${name}')">✕</button></span>
             `;
             cartDiv.appendChild(line);
         }
