@@ -17,20 +17,25 @@
         .item-img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
-        .budget-box { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid var(--brand-grey); text-align: center; }
+        
+        /* The Dynamic Box */
+        .status-box { padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 15px; transition: 0.3s; border: 2px solid rgba(0,0,0,0.1); }
+        .status-green { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .status-red { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        
         .pos-input { width: 100px; padding: 8px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 22px; text-align: center; border-radius: 4px; margin: 10px 0; }
-        .remaining-box { margin-top: 10px; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #eee; }
-        .remaining-val { font-weight: bold; font-size: 1.8em; color: var(--brand-green); display: block; }
-        .over-budget { color: var(--brand-red) !important; }
+        .remaining-val { font-weight: bold; font-size: 2em; display: block; }
+        
         .cash-btns { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
         .cash-btn { background: var(--brand-grey); color: white; border: none; padding: 10px 2px; border-radius: 4px; cursor: pointer; font-size: 13px; font-family: 'League Spartan'; }
-        .cash-btn:active { opacity: 0.8; }
+        
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
         .btn-next { background: var(--brand-green); font-size: 1.1em; }
         .btn-report { background: #555; margin-top: 30px; font-size: 12px; }
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
         .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
         .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; line-height: 1; }
+        .summary-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -40,7 +45,7 @@
 <div class="receipt">
     <h2>Checkout</h2>
     
-    <div class="budget-box">
+    <div id="display-box" class="status-box status-green">
         <b>Money Handed Over:</b><br>
         £<input type="number" step="0.10" value="0.00" class="pos-input" id="cash-input" oninput="updateCalculations()">
         <div class="cash-btns">
@@ -49,16 +54,20 @@
             <button class="cash-btn" onclick="setCash(2)">£2</button>
             <button class="cash-btn" onclick="setCash(5)">£5</button>
         </div>
-        <div class="remaining-box">
-            <span id="label-text">CHANGE / LEFT:</span>
-            <span id="remaining-val" class="remaining-val">£0.00</span>
-        </div>
+        <hr style="margin: 15px 0; opacity: 0.2;">
+        <span id="label-text" style="font-weight:600;">CHANGE TO GIVE:</span>
+        <span id="remaining-val" class="remaining-val">£0.00</span>
     </div>
 
     <div id="cart-items"></div>
 
-    <div style="border-top: 2px solid #eee; padding-top: 10px; display: flex; justify-content: space-between; align-items: baseline;">
-        <h3>Total</h3><h2 id="total-display">£0.00</h2>
+    <div style="border-top: 2px solid #eee; padding-top: 10px;">
+        <div class="summary-row">
+            <span>Items Total:</span><h3 id="total-display">£0.00</h3>
+        </div>
+        <div class="summary-row" style="color: var(--brand-green); font-weight: bold; border-top: 1px solid #f0f0f0; margin-top: 5px; padding-top: 5px;">
+            <span>Change Due:</span><h3 id="change-summary">£0.00</h3>
+        </div>
     </div>
 
     <button class="btn btn-next" onclick="completeSale()">NEXT CUSTOMER</button>
@@ -122,18 +131,20 @@
         const remaining = cashIn - total;
 
         document.getElementById('total-display').innerText = `£${total.toFixed(2)}`;
+        document.getElementById('change-summary').innerText = `£${Math.max(0, remaining).toFixed(2)}`;
         
         const remDisplay = document.getElementById('remaining-val');
         const label = document.getElementById('label-text');
+        const displayBox = document.getElementById('display-box');
         
         remDisplay.innerText = `£${Math.abs(remaining).toFixed(2)}`;
         
         if (remaining < 0) {
             label.innerText = "OVER BUDGET BY:";
-            remDisplay.className = 'remaining-val over-budget';
+            displayBox.className = 'status-box status-red';
         } else {
-            label.innerText = "CHANGE / LEFT:";
-            remDisplay.className = 'remaining-val';
+            label.innerText = "CHANGE TO GIVE:";
+            displayBox.className = 'status-box status-green';
         }
 
         const cartDiv = document.getElementById('cart-items');
@@ -149,7 +160,6 @@
     function completeSale() {
         if(cart.length === 0) return;
         cart.forEach(item => { sessionSales.push({ name: item.name, price: item.price }); });
-        document.getElementById('cash-input').value = "0.00";
         resetCart();
     }
 
