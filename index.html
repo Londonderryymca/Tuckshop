@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tuckshop Sales </title>
+    <title>Tuckshop POS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Hind+Guntur:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -18,9 +18,15 @@
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
         .budget-box { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid var(--brand-grey); }
-        .budget-input { width: 75px; padding: 5px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 18px; text-align: center; }
+        .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .pos-input { width: 80px; padding: 5px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 18px; text-align: center; border-radius: 4px; }
         .remaining { font-weight: bold; font-size: 1.5em; color: var(--brand-green); }
+        .change-box { background: #e9f5d1; padding: 10px; border-radius: 4px; text-align: center; margin-top: 10px; border: 1px dashed var(--brand-green); }
+        .change-val { font-size: 1.8em; color: var(--brand-green); font-weight: bold; display: block; }
         .over-budget { color: var(--brand-red) !important; }
+        .cash-btns { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-top: 5px; }
+        .cash-btn { background: #eee; border: 1px solid #ccc; padding: 8px 2px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'League Spartan'; }
+        .cash-btn:active { background: #ddd; }
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
         .btn-next { background: var(--brand-green); font-size: 1.1em; }
         .btn-report { background: var(--brand-grey); margin-top: 30px; font-size: 12px; }
@@ -35,14 +41,38 @@
 
 <div class="receipt">
     <h2>Current Order</h2>
+    
     <div class="budget-box">
-        <span>Budget: £</span><input type="number" step="0.10" value="2.00" class="budget-input" id="budget-input" oninput="updateCalculations()">
-        <div style="margin-top:10px;">Left to spend: <br><span id="remaining-val" class="remaining">£2.00</span></div>
+        <div class="input-row">
+            <span>Customer Budget:</span>
+            <span>£<input type="number" step="0.10" value="2.00" class="pos-input" id="budget-input" oninput="updateCalculations()"></span>
+        </div>
+        <div style="text-align: right;">Left to spend: <span id="remaining-val" class="remaining">£2.00</span></div>
     </div>
+
     <div id="cart-items"></div>
-    <div style="display:flex; justify-content: space-between; align-items: baseline; border-top: 2px solid #eee; padding-top: 10px;">
-        <h3>Total</h3><h2 id="total-display">£0.00</h2>
+
+    <div style="border-top: 2px solid #eee; padding-top: 10px;">
+        <div class="input-row">
+            <h3>Total</h3><h2 id="total-display">£0.00</h2>
+        </div>
+        <div class="input-row">
+            <span>Cash Received:</span>
+            <span>£<input type="number" step="0.10" value="0.00" class="pos-input" id="cash-received" oninput="updateCalculations()"></span>
+        </div>
+        <div class="cash-btns">
+            <button class="cash-btn" onclick="setCash(0.5)">50p</button>
+            <button class="cash-btn" onclick="setCash(1)">£1</button>
+            <button class="cash-btn" onclick="setCash(2)">£2</button>
+            <button class="cash-btn" onclick="setCash(5)">£5</button>
+        </div>
     </div>
+
+    <div id="change-section" class="change-box" style="display:none;">
+        <span>CHANGE TO GIVE:</span>
+        <span id="change-val" class="change-val">£0.00</span>
+    </div>
+
     <button class="btn btn-next" onclick="completeSale()">NEXT CUSTOMER</button>
     <button class="btn btn-clear" onclick="resetCart()">CLEAR ORDER</button>
     
@@ -52,7 +82,7 @@
 <script>
     let inventory = [];
     let cart = [];
-    let sessionSales = []; // Tracks everything sold since page load
+    let sessionSales = [];
     const categories = ["Sweets", "Pick n Mix", "Drinks", "Crisps", "Other"];
 
     async function loadInventory() {
@@ -93,14 +123,36 @@
         updateCalculations();
     }
 
+    function setCash(amount) {
+        document.getElementById('cash-received').value = amount.toFixed(2);
+        updateCalculations();
+    }
+
     function updateCalculations() {
         const total = cart.reduce((sum, item) => sum + item.price, 0);
         const budget = parseFloat(document.getElementById('budget-input').value) || 0;
+        const cashIn = parseFloat(document.getElementById('cash-received').value) || 0;
+        
         const remaining = budget - total;
+        const change = cashIn - total;
+
         document.getElementById('total-display').innerText = `£${total.toFixed(2)}`;
+        
         const remDisplay = document.getElementById('remaining-val');
         remDisplay.innerText = `£${remaining.toFixed(2)}`;
         remDisplay.className = remaining < 0 ? 'remaining over-budget' : 'remaining';
+
+        const changeSection = document.getElementById('change-section');
+        const changeDisplay = document.getElementById('change-val');
+        
+        if (cashIn > 0 && total > 0) {
+            changeSection.style.display = 'block';
+            changeDisplay.innerText = `£${change.toFixed(2)}`;
+            changeDisplay.className = change < 0 ? 'change-val over-budget' : 'change-val';
+        } else {
+            changeSection.style.display = 'none';
+        }
+
         const cartDiv = document.getElementById('cart-items');
         cartDiv.innerHTML = '';
         cart.forEach(item => {
@@ -113,41 +165,23 @@
 
     function completeSale() {
         if(cart.length === 0) return;
-        // Record the sales before clearing the cart
-        cart.forEach(item => {
-            sessionSales.push({ name: item.name, price: item.price });
-        });
+        cart.forEach(item => { sessionSales.push({ name: item.name, price: item.price }); });
+        document.getElementById('cash-received').value = "0.00";
         resetCart();
     }
 
     function resetCart() { cart = []; updateCalculations(); }
 
     function downloadSalesReport() {
-        if (sessionSales.length === 0) return alert("No sales recorded yet!");
-        
+        if (sessionSales.length === 0) return alert("No sales recorded!");
         const totalMoney = sessionSales.reduce((sum, item) => sum + item.price, 0);
-        
-        // Count how many of each item was sold
         const counts = {};
-        sessionSales.forEach(item => {
-            counts[item.name] = (counts[item.name] || 0) + 1;
-        });
-
-        let report = `TUCKSHOP END OF DAY REPORT\n`;
-        report += `Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n`;
-        report += `------------------------------\n`;
-        report += `TOTAL MONEY IN TIN: £${totalMoney.toFixed(2)}\n`;
-        report += `TOTAL ITEMS SOLD: ${sessionSales.length}\n`;
-        report += `------------------------------\n\n`;
-        report += `ITEM BREAKDOWN:\n`;
-        
-        for (const [name, count] of Object.entries(counts)) {
-            report += `${name}: ${count}\n`;
-        }
-
+        sessionSales.forEach(item => { counts[item.name] = (counts[item.name] || 0) + 1; });
+        let report = `TUCKSHOP SALES REPORT - ${new Date().toLocaleDateString()}\n------------------------------\nTOTAL REVENUE: £${totalMoney.toFixed(2)}\nITEMS SOLD: ${sessionSales.length}\n------------------------------\n`;
+        for (const [name, count] of Object.entries(counts)) { report += `${name}: ${count}\n`; }
         const blob = new Blob([report], { type: 'text/plain' });
         const anchor = document.createElement('a');
-        anchor.download = `tuckshop-sales-${new Date().toLocaleDateString()}.txt`;
+        anchor.download = `tuckshop-report.txt`;
         anchor.href = URL.createObjectURL(blob);
         anchor.click();
     }
