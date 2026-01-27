@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Freddo", "price": 0.80, "stock": 50, "img": "🍫" },
+  { "id": 2, "name": "Water", "price": 1.50, "stock": 24, "img": "💧" },
+  { "id": 3, "name": "Chips", "price": 2.00, "stock": 30, "img": "🍟" },
+  { "id": 4, "name": "Apple", "price": 1.00, "stock": 15, "img": "🍎" }
+]
