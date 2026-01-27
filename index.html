@@ -16,9 +16,13 @@
         
         /* Item Card & Badge */
         .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; }
-        .item-card:active { transform: translateY(2px); border-bottom: 0; }
-        .count-badge { position: absolute; top: -5px; right: -5px; background: var(--brand-red); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .item-card:active { transform: translateY(1px); }
+        .count-badge { position: absolute; top: -5px; right: -5px; background: var(--brand-red); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); pointer-events: none; }
         
+        /* The Quick Minus Button */
+        .minus-btn { position: absolute; bottom: 8px; left: 8px; background: #eee; color: #555; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid #ccc; font-size: 18px; line-height: 1; transition: 0.2s; }
+        .minus-btn:hover { background: var(--brand-red); color: white; border-color: var(--brand-red); }
+
         .item-img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
@@ -45,7 +49,7 @@
 </head>
 <body>
 
-<div class="menu-container" id="main-menu">Loading...</div>
+<div id="main-menu" class="menu-container">Loading...</div>
 
 <div class="receipt">
     <h2>Checkout</h2>
@@ -79,7 +83,7 @@
 
 <script>
     let inventory = [];
-    let cart = []; // Array of product names
+    let cart = []; 
     let sessionSales = []; 
     const categories = ["Sweets", "Pick n Mix", "Drinks", "Crisps", "Other"];
 
@@ -95,7 +99,6 @@
         const mainMenu = document.getElementById('main-menu');
         mainMenu.innerHTML = '';
         
-        // Count items currently in cart to show on badges
         const counts = {};
         cart.forEach(name => counts[name] = (counts[name] || 0) + 1);
 
@@ -112,13 +115,16 @@
             catItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-                const countBadge = counts[item.name] ? `<div class="count-badge">${counts[item.name]}</div>` : '';
+                const currentCount = counts[item.name] || 0;
+                const countBadge = currentCount > 0 ? `<div class="count-badge">${currentCount}</div>` : '';
+                const minusBtn = currentCount > 0 ? `<div class="minus-btn" onclick="event.stopPropagation(); removeFromCart('${item.name}')">–</div>` : '';
                 
                 card.innerHTML = `
                     ${countBadge}
                     <img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Item'">
                     <b>${item.name}</b><br>
                     <span class="price-tag">£${item.price.toFixed(2)}</span>
+                    ${minusBtn}
                 `;
                 card.onclick = () => addToCart(item.name);
                 grid.appendChild(card);
@@ -130,7 +136,7 @@
     function addToCart(name) {
         cart.push(name);
         updateCalculations();
-        renderMenu(); // Redraw menu to update badges
+        renderMenu();
     }
 
     function removeFromCart(name) {
