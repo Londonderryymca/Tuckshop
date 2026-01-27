@@ -12,27 +12,20 @@
         .cat-section { margin-bottom: 30px; }
         .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; font-size: 1.2em; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; }
+        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; }
         .item-card:active { transform: translateY(2px); border-bottom: 0; }
         .item-img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
-        
-        .low-stock-warning { border: 2px solid var(--brand-red) !important; background: #fff5f5; }
-        .reorder-tag { position: absolute; top: 5px; right: 5px; background: var(--brand-red); color: white; font-size: 9px; padding: 2px 5px; border-radius: 3px; font-family: 'League Spartan'; }
-
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
         .budget-box { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid var(--brand-grey); }
-        .budget-input { width: 70px; padding: 5px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 16px; }
-        .remaining { font-weight: bold; font-size: 1.3em; color: var(--brand-green); }
+        .budget-input { width: 75px; padding: 5px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 18px; text-align: center; }
+        .remaining { font-weight: bold; font-size: 1.5em; color: var(--brand-green); }
         .over-budget { color: var(--brand-red) !important; }
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
-        .btn-pay { background: var(--brand-green); }
+        .btn-next { background: var(--brand-green); font-size: 1.1em; }
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
-        .btn-email { background: var(--brand-grey); margin-top: 10px; font-size: 12px; }
-        .btn-report { background: var(--brand-grey); margin-top: 40px; }
-        .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f9f9f9; }
-        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; }
-        .out-of-stock { opacity: 0.3; grayscale: 1; pointer-events: none; }
+        .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
+        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -40,28 +33,22 @@
 <div class="menu-container" id="main-menu">Loading Tuckshop...</div>
 
 <div class="receipt">
-    <h2>Customer Order</h2>
+    <h2>Order Total</h2>
     <div class="budget-box">
         <span>Budget: £</span><input type="number" step="0.10" value="2.00" class="budget-input" id="budget-input" oninput="updateCalculations()">
-        <div style="margin-top:8px;">Remaining: <span id="remaining-val" class="remaining">£2.00</span></div>
+        <div style="margin-top:10px;">Left to spend: <br><span id="remaining-val" class="remaining">£2.00</span></div>
     </div>
     <div id="cart-items"></div>
     <div style="display:flex; justify-content: space-between; align-items: baseline; border-top: 2px solid #eee; padding-top: 10px;">
         <h3>Total</h3><h2 id="total-display">£0.00</h2>
     </div>
-    <button class="btn btn-pay" onclick="completeSale()">COMPLETE SALE</button>
-    <button class="btn btn-clear" onclick="resetCart()">CANCEL ORDER</button>
-    <button class="btn btn-email" onclick="emailLowStock()">📧 EMAIL RESTOCK LIST</button>
-    <button class="btn btn-report" onclick="downloadReport()">END DAY REPORT</button>
+    <button class="btn btn-next" onclick="resetCart()">NEXT CUSTOMER</button>
+    <button class="btn btn-clear" onclick="resetCart()">CLEAR ALL</button>
 </div>
 
 <script>
     let inventory = [];
-    let sessionTotalSales = 0;
-    let itemsSoldList = [];
     let cart = [];
-    
-    // Updated order to put Pick n Mix under Sweets
     const categories = ["Sweets", "Pick n Mix", "Drinks", "Crisps", "Other"];
 
     async function loadInventory() {
@@ -75,24 +62,16 @@
     function renderMenu() {
         const mainMenu = document.getElementById('main-menu');
         mainMenu.innerHTML = '';
-
         categories.forEach(cat => {
             const section = document.createElement('div');
             section.className = 'cat-section';
             section.innerHTML = `<div class="cat-header">${cat}</div>`;
             const grid = document.createElement('div');
             grid.className = 'grid';
-            
             inventory.filter(i => i.category === cat).forEach(item => {
                 const card = document.createElement('div');
-                const isLow = item.stock <= (item.reorder || 0) && item.stock > 0;
-                card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''} ${isLow ? 'low-stock-warning' : ''}`;
-                
-                // Ensure image shows correctly
-                const imgHtml = `<img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=${item.name}'">`;
-                const reorderBadge = isLow ? `<div class="reorder-tag">REORDER</div>` : '';
-
-                card.innerHTML = `${reorderBadge}${imgHtml}<b>${item.name}</b><br><span class="price-tag">£${item.price.toFixed(2)}</span><br><small>Stock: ${item.stock}</small>`;
+                card.className = 'item-card';
+                card.innerHTML = `<img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Image'"><b>${item.name}</b><br><span class="price-tag">£${item.price.toFixed(2)}</span>`;
                 card.onclick = () => addToCart(item);
                 grid.appendChild(card);
             });
@@ -100,8 +79,15 @@
         });
     }
 
-    function addToCart(item) { cart.push({...item, cartId: Date.now() + Math.random()}); updateCalculations(); }
-    function removeFromCart(cartId) { cart = cart.filter(i => i.cartId !== cartId); updateCalculations(); }
+    function addToCart(item) {
+        cart.push({...item, cartId: Date.now() + Math.random()});
+        updateCalculations();
+    }
+
+    function removeFromCart(cartId) {
+        cart = cart.filter(i => i.cartId !== cartId);
+        updateCalculations();
+    }
 
     function updateCalculations() {
         const total = cart.reduce((sum, item) => sum + item.price, 0);
@@ -121,35 +107,7 @@
         });
     }
 
-    function completeSale() {
-        if(cart.length === 0) return;
-        cart.forEach(cartItem => {
-            const stockItem = inventory.find(i => i.id === cartItem.id);
-            if(stockItem) { stockItem.stock -= 1; itemsSoldList.push(cartItem.name); sessionTotalSales += cartItem.price; }
-        });
-        resetCart(); renderMenu();
-    }
-
     function resetCart() { cart = []; updateCalculations(); }
-
-    function emailLowStock() {
-        const lowStockItems = inventory.filter(i => i.stock <= (i.reorder || 0));
-        if (lowStockItems.length === 0) return alert("All stock levels are healthy.");
-        let body = "Tuckshop Restock List:\n\n";
-        lowStockItems.forEach(i => { body += `- ${i.name} (Stock: ${i.stock} / Reorder at: ${i.reorder})\n`; });
-        window.location.href = `mailto:?subject=Tuckshop Reorder&body=${encodeURIComponent(body)}`;
-    }
-
-    function downloadReport() {
-        let report = `TUCKSHOP REPORT\nDate: ${new Date().toLocaleString()}\nTotal Sales: £${sessionTotalSales.toFixed(2)}\n\nSTOCK STATUS:\n`;
-        inventory.forEach(i => { report += `- ${i.name}: ${i.stock} (${i.stock <= i.reorder ? '⚠️ REORDER' : 'OK'})\n`; });
-        const blob = new Blob([report], { type: 'text/plain' });
-        const anchor = document.createElement('a');
-        anchor.download = `tuckshop-report.txt`;
-        anchor.href = URL.createObjectURL(blob);
-        anchor.click();
-    }
-
     loadInventory();
 </script>
 </body>
