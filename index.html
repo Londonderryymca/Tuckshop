@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tuckshop POS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Hind+Guntur:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --brand-grey: #354348; --brand-green: #93c022; --brand-red: #e4012c; --background: #f8f9fa; }
+        body { font-family: 'Hind Guntur', sans-serif; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; background: var(--background); color: var(--brand-grey); }
+        h2, h3, b, .btn { font-family: 'League Spartan', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; flex: 2; }
+        .item-card { background: white; padding: 15px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; }
+        .item-card:active { transform: translateY(2px); border-bottom: 0; }
+        .price-tag { color: var(--brand-green); font-weight: 600; font-size: 1.1em; }
+        .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
+        .btn-pay { background: var(--brand-green); }
+        .btn-clear { background: var(--brand-red); margin-top: 5px; font-size: 12px; opacity: 0.8; }
+        .btn-report { background: var(--brand-grey); margin-top: 40px; }
+        #cart-items { min-height: 120px; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
+        .out-of-stock { opacity: 0.3; grayscale: 1; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="menu" id="menu">Loading items...</div>
+
+<div class="receipt">
+    <h2>Order Summary</h2>
+    <div id="cart-items"></div>
+    <div style="display:flex; justify-content: space-between; align-items: baseline;">
+        <h3>Total</h3>
+        <h2 style="color: var(--brand-green);">$<span id="total-price">0.00</span></h2>
+    </div>
+    <button class="btn btn-pay" onclick="completeSale()">Complete Sale</button>
+    <button class="btn btn-clear" onclick="resetCart()">Cancel Order</button>
+    <button class="btn btn-report" onclick="downloadReport()">Download Daily Report</button>
+</div>
+
+<script>
+    let inventory = [];
+    let sessionTotalSales = 0;
+    let itemsSoldList = [];
+    let cart = [];
+    let cartTotal = 0;
+
+    // Load data from the products.json file
+    async function loadInventory() {
+        try {
+            const response = await fetch('products.json');
+            inventory = await response.json();
+            renderMenu();
+        } catch (error) {
+            document.getElementById('menu').innerText = "Error loading menu. Check products.json file.";
+        }
+    }
+
+    function renderMenu() {
+        const menuDiv = document.getElementById('menu');
+        menuDiv.innerHTML = '';
+        inventory.forEach(item => {
+            const card = document.createElement('div');
+            card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''}`;
+            card.innerHTML = `<div style="font-size: 40px; margin-bottom:10px;">${item.img}</div>
+                              <b>${item.name}</b><br>
+                              <span class="price-tag">$${item.price.toFixed(2)}</span><br>
+                              <small style="color: #999">Stock: ${item.stock}</small>`;
+            card.onclick = () => addToCart(item);
+            menuDiv.appendChild(card);
+        });
+    }
+
+    function addToCart(item) {
+        cart.push(item);
+        cartTotal += item.price;
+        document.getElementById('total-price').innerText = cartTotal.toFixed(2);
+        const itemLine = document.createElement('div');
+        itemLine.style.display = "flex";
+        itemLine.style.justifyContent = "space-between";
+        itemLine.innerHTML = `<span>${item.name}</span> <span>$${item.price.toFixed(2)}</span>`;
+        document.getElementById('cart-items').appendChild(itemLine);
+    }
+
+    function completeSale() {
+        if(cart.length === 0) return;
+        cart.forEach(cartItem => {
+            const stockItem = inventory.find(i => i.id === cartItem.id);
+            stockItem.stock -= 1;
+            itemsSoldList.push(cartItem.name);
+        });
+        sessionTotalSales += cartTotal;
+        resetCart();
+        renderMenu();
+    }
+
+    function resetCart() {
+        cart = [];
+        cartTotal = 0;
+        document.getElementById('total-price').innerText = "0.00";
+        document.getElementById('cart-items').innerHTML = "";
+    }
+
+    function downloadReport() {
+        let report = `TUCKSHOP SALES REPORT\nDate: ${new Date().toLocaleString()}\n==========================\nTOTAL REVENUE: $${sessionTotalSales.toFixed(2)}\nTOTAL ITEMS SOLD: ${itemsSoldList.length}\n\nINVENTORY STATUS:\n`;
+        inventory.forEach(i => { report += `- ${i.name}: ${i.stock} remaining\n`; });
+        const blob = new Blob([report], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = `tuckshop-report.txt`;
+        anchor.href = URL.createObjectURL(blob);
+        anchor.click();
+    }
+
+    loadInventory();
+</script>
+</body>
+</html>
