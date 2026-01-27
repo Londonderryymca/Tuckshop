@@ -8,69 +8,51 @@
         :root { --brand-grey: #354348; --brand-green: #93c022; --brand-red: #e4012c; --background: #f8f9fa; }
         body { font-family: 'Hind Guntur', sans-serif; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; background: var(--background); color: var(--brand-grey); }
         h2, h3, b, .btn, .cat-header { font-family: 'League Spartan', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
-        
         .menu-container { flex: 2; min-width: 350px; }
-        
-        /* Quick Add Styling */
-        .quick-add-container { background: white; padding: 15px; border-radius: 4px; margin-bottom: 25px; border: 2px dashed var(--brand-green); }
-        .quick-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        .quick-btn { background: #fff; border: 1px solid var(--brand-green); padding: 8px 12px; border-radius: 20px; cursor: pointer; font-family: 'League Spartan'; font-size: 12px; transition: 0.2s; }
-        .quick-btn:hover { background: var(--brand-green); color: white; }
-
         .cat-section { margin-bottom: 30px; }
-        .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; color: var(--brand-grey); font-size: 1.2em; }
-        
+        .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; font-size: 1.2em; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; overflow: hidden; }
+        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; }
         .item-card:active { transform: translateY(2px); border-bottom: 0; }
+        .item-img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
         
-        .item-img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; font-size: 40px; display: flex; align-items: center; justify-content: center; }
-        
+        .low-stock-warning { border: 2px solid var(--brand-red) !important; background: #fff5f5; }
+        .reorder-tag { position: absolute; top: 5px; right: 5px; background: var(--brand-red); color: white; font-size: 9px; padding: 2px 5px; border-radius: 3px; font-family: 'League Spartan'; }
+
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
-        
         .budget-box { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid var(--brand-grey); }
         .budget-input { width: 70px; padding: 5px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 16px; }
         .remaining { font-weight: bold; font-size: 1.3em; color: var(--brand-green); }
         .over-budget { color: var(--brand-red) !important; }
-
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
         .btn-pay { background: var(--brand-green); }
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
+        .btn-email { background: var(--brand-grey); margin-top: 10px; font-size: 12px; }
         .btn-report { background: var(--brand-grey); margin-top: 40px; }
-        
-        #cart-items { min-height: 50px; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
         .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f9f9f9; }
-        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 1; }
-        
+        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; }
         .out-of-stock { opacity: 0.3; grayscale: 1; pointer-events: none; }
     </style>
 </head>
 <body>
 
-<div class="menu-container">
-    <div class="quick-add-container">
-        <div class="cat-header" style="border:none; font-size: 0.9em; margin-bottom: 10px;">⚡ Quick Add Pick n Mix</div>
-        <div class="quick-grid" id="quick-add-grid"></div>
-    </div>
-    <div id="main-menu">Loading Tuckshop...</div>
-</div>
+<div class="menu-container" id="main-menu">Loading Tuckshop...</div>
 
 <div class="receipt">
     <h2>Customer Order</h2>
     <div class="budget-box">
-        <span>Budget: £</span>
-        <input type="number" step="0.10" value="2.00" class="budget-input" id="budget-input" oninput="updateCalculations()">
+        <span>Budget: £</span><input type="number" step="0.10" value="2.00" class="budget-input" id="budget-input" oninput="updateCalculations()">
         <div style="margin-top:8px;">Remaining: <span id="remaining-val" class="remaining">£2.00</span></div>
     </div>
     <div id="cart-items"></div>
     <div style="display:flex; justify-content: space-between; align-items: baseline; border-top: 2px solid #eee; padding-top: 10px;">
-        <h3>Total</h3>
-        <h2 id="total-display" style="color: var(--brand-grey);">£0.00</h2>
+        <h3>Total</h3><h2 id="total-display">£0.00</h2>
     </div>
     <button class="btn btn-pay" onclick="completeSale()">COMPLETE SALE</button>
     <button class="btn btn-clear" onclick="resetCart()">CANCEL ORDER</button>
-    <button class="btn btn-report" onclick="downloadReport()">DOWNLOAD DAILY REPORT</button>
+    <button class="btn btn-email" onclick="emailLowStock()">📧 EMAIL RESTOCK LIST</button>
+    <button class="btn btn-report" onclick="downloadReport()">END DAY REPORT</button>
 </div>
 
 <script>
@@ -78,34 +60,22 @@
     let sessionTotalSales = 0;
     let itemsSoldList = [];
     let cart = [];
-    const categories = ["Sweets", "Drinks", "Crisps", "Other", "Pick n Mix"];
+    
+    // Updated order to put Pick n Mix under Sweets
+    const categories = ["Sweets", "Pick n Mix", "Drinks", "Crisps", "Other"];
 
     async function loadInventory() {
         try {
             const response = await fetch('products.json');
             inventory = await response.json();
             renderMenu();
-        } catch (error) {
-            document.getElementById('main-menu').innerText = "Error loading products.json";
-        }
+        } catch (error) { document.getElementById('main-menu').innerText = "Error loading products."; }
     }
 
     function renderMenu() {
         const mainMenu = document.getElementById('main-menu');
-        const quickGrid = document.getElementById('quick-add-grid');
         mainMenu.innerHTML = '';
-        quickGrid.innerHTML = '';
 
-        // Fill Quick Add Bar
-        inventory.filter(i => i.category === "Pick n Mix").forEach(item => {
-            const btn = document.createElement('button');
-            btn.className = 'quick-btn';
-            btn.innerHTML = `${item.img} ${item.name} (£${item.price.toFixed(2)})`;
-            btn.onclick = () => addToCart(item);
-            quickGrid.appendChild(btn);
-        });
-
-        // Fill Main Menu
         categories.forEach(cat => {
             const section = document.createElement('div');
             section.className = 'cat-section';
@@ -115,27 +85,23 @@
             
             inventory.filter(i => i.category === cat).forEach(item => {
                 const card = document.createElement('div');
-                card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''}`;
-                const isUrl = item.img.startsWith('http');
-                const imgHtml = isUrl ? `<img src="${item.img}" class="item-img" alt="${item.name}">` : `<div class="item-img">${item.img}</div>`;
-                card.innerHTML = `${imgHtml}<b>${item.name}</b><br><span class="price-tag">£${item.price.toFixed(2)}</span><br><small>Stock: ${item.stock}</small>`;
+                const isLow = item.stock <= (item.reorder || 0) && item.stock > 0;
+                card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''} ${isLow ? 'low-stock-warning' : ''}`;
+                
+                // Ensure image shows correctly
+                const imgHtml = `<img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=${item.name}'">`;
+                const reorderBadge = isLow ? `<div class="reorder-tag">REORDER</div>` : '';
+
+                card.innerHTML = `${reorderBadge}${imgHtml}<b>${item.name}</b><br><span class="price-tag">£${item.price.toFixed(2)}</span><br><small>Stock: ${item.stock}</small>`;
                 card.onclick = () => addToCart(item);
                 grid.appendChild(card);
             });
-            section.appendChild(grid);
-            mainMenu.appendChild(section);
+            section.appendChild(grid); mainMenu.appendChild(section);
         });
     }
 
-    function addToCart(item) {
-        cart.push({...item, cartId: Date.now() + Math.random()});
-        updateCalculations();
-    }
-
-    function removeFromCart(cartId) {
-        cart = cart.filter(i => i.cartId !== cartId);
-        updateCalculations();
-    }
+    function addToCart(item) { cart.push({...item, cartId: Date.now() + Math.random()}); updateCalculations(); }
+    function removeFromCart(cartId) { cart = cart.filter(i => i.cartId !== cartId); updateCalculations(); }
 
     function updateCalculations() {
         const total = cart.reduce((sum, item) => sum + item.price, 0);
@@ -159,21 +125,24 @@
         if(cart.length === 0) return;
         cart.forEach(cartItem => {
             const stockItem = inventory.find(i => i.id === cartItem.id);
-            if(stockItem) {
-                stockItem.stock -= 1;
-                itemsSoldList.push(cartItem.name);
-                sessionTotalSales += cartItem.price;
-            }
+            if(stockItem) { stockItem.stock -= 1; itemsSoldList.push(cartItem.name); sessionTotalSales += cartItem.price; }
         });
-        resetCart();
-        renderMenu();
+        resetCart(); renderMenu();
     }
 
     function resetCart() { cart = []; updateCalculations(); }
 
+    function emailLowStock() {
+        const lowStockItems = inventory.filter(i => i.stock <= (i.reorder || 0));
+        if (lowStockItems.length === 0) return alert("All stock levels are healthy.");
+        let body = "Tuckshop Restock List:\n\n";
+        lowStockItems.forEach(i => { body += `- ${i.name} (Stock: ${i.stock} / Reorder at: ${i.reorder})\n`; });
+        window.location.href = `mailto:?subject=Tuckshop Reorder&body=${encodeURIComponent(body)}`;
+    }
+
     function downloadReport() {
-        let report = `TUCKSHOP SALES REPORT\nDate: ${new Date().toLocaleString()}\n==========================\nTOTAL REVENUE: £${sessionTotalSales.toFixed(2)}\nTOTAL ITEMS SOLD: ${itemsSoldList.length}\n\nINVENTORY STATUS:\n`;
-        inventory.forEach(i => { report += `- [${i.category}] ${i.name}: ${i.stock} left\n`; });
+        let report = `TUCKSHOP REPORT\nDate: ${new Date().toLocaleString()}\nTotal Sales: £${sessionTotalSales.toFixed(2)}\n\nSTOCK STATUS:\n`;
+        inventory.forEach(i => { report += `- ${i.name}: ${i.stock} (${i.stock <= i.reorder ? '⚠️ REORDER' : 'OK'})\n`; });
         const blob = new Blob([report], { type: 'text/plain' });
         const anchor = document.createElement('a');
         anchor.download = `tuckshop-report.txt`;
