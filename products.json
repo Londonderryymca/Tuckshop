@@ -15,7 +15,7 @@
   { "id": 25, "name": "Cola Bottles", "price": 0.05, "img": "https://www.zapsweets.co.uk/cdn/shop/products/haribo_cola_bottles.jpg", "category": "Pick n Mix" },
   { "id": 26, "name": "Pencils", "price": 0.10, "img": "https://www.handycandy.co.uk/image/cache/catalog/Products/strawberry-pencils-retro-sweets-2021-1000x1000.jpg", "category": "Pick n Mix" },
   { "id": 27, "name": "Rotella", "price": 0.10, "img": "https://www.thesweetstore.co.uk/cdn/shop/files/HARIBOROTELLA_1024x1024.jpg", "category": "Pick n Mix" },
-  { "id": 13, "name": "Sukie", "price": 0.30, "img": "https://orders.lynasfoodservice.com/uploads/images/large-image/Sukie_Orange-carton-1_copy.jpg", "category": "Drinks" },
+  { "id": 13, "name": "Sukie", "price": 0.30, "img": "https://cms.weareactivation.com/wp-content/uploads/2024/08/Sukie-News.jpg", "category": "Drinks" },
   { "id": 14, "name": "Vitazade", "price": 0.40, "img": "https://macsqualityfoods.co.uk/wp-content/uploads/2020/05/Unknown.jpg", "category": "Drinks" },
   { "id": 15, "name": "Barr Cans", "price": 0.50, "img": "https://s3-eu-west-1.amazonaws.com/glencrest/i/pmi/barr_cherryade_330ml_59p.png", "category": "Drinks" },
   { "id": 17, "name": "Space Raiders", "price": 0.40, "img": "https://www.bj-supplies.com/cdn/shop/products/Space_Raiders_480x480.png", "category": "Crisps" },
