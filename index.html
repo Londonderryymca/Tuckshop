@@ -30,7 +30,7 @@
         .btn-report { background: #555; margin-top: 30px; font-size: 12px; }
         .btn-clear { background: #ccc; color: #555; margin-top: 5px; font-size: 12px; }
         .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
-        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
+        .remove-btn { background: var(--brand-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; line-height: 1; }
     </style>
 </head>
 <body>
@@ -42,7 +42,7 @@
     
     <div class="budget-box">
         <b>Money Handed Over:</b><br>
-        £<input type="number" step="0.10" value="2.00" class="pos-input" id="cash-input" oninput="updateCalculations()">
+        £<input type="number" step="0.10" value="0.00" class="pos-input" id="cash-input" oninput="updateCalculations()">
         <div class="cash-btns">
             <button class="cash-btn" onclick="setCash(0.5)">50p</button>
             <button class="cash-btn" onclick="setCash(1)">£1</button>
@@ -51,7 +51,7 @@
         </div>
         <div class="remaining-box">
             <span id="label-text">CHANGE / LEFT:</span>
-            <span id="remaining-val" class="remaining-val">£2.00</span>
+            <span id="remaining-val" class="remaining-val">£0.00</span>
         </div>
     </div>
 
@@ -149,10 +149,15 @@
     function completeSale() {
         if(cart.length === 0) return;
         cart.forEach(item => { sessionSales.push({ name: item.name, price: item.price }); });
+        document.getElementById('cash-input').value = "0.00";
         resetCart();
     }
 
-    function resetCart() { cart = []; updateCalculations(); }
+    function resetCart() { 
+        cart = []; 
+        document.getElementById('cash-input').value = "0.00";
+        updateCalculations(); 
+    }
 
     function downloadSalesReport() {
         if (sessionSales.length === 0) return alert("No sales recorded!");
