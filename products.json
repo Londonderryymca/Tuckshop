@@ -22,5 +22,5 @@
   { "id": 18, "name": "Chipsticks", "price": 0.40, "img": "https://m.media-amazon.com/images/I/41s6hNAF0CS._AC_UF894,1000_QL80_.jpg", "category": "Crisps" },
   { "id": 19, "name": "Pringles", "price": 1.00, "img": "https://digitalcontent.api.tesco.com/v2/media/ghs/f8487f38-d714-4281-85ac-4f48e540f607/5b39ef87-d175-4674-b407-33365743d2bc_833369210.jpeg", "category": "Crisps" },
   { "id": 20, "name": "Mr Freeze", "price": 0.10, "img": "https://digitalcontent.api.tesco.com/v2/media/ghs/ad3bece2-6dbd-4c69-83b6-35e9b9788c58/7e50c6e1-bf48-43b0-adb9-77bb8460e0bc_845275808.jpeg", "category": "Other" },
-  { "id": 22, "name": "Pot Noodle", "price": 1.10, "img": "https://digitalcontent.api.tesco.com/v2/media/ghs/7caee324-879f-45eb-97b1-ff0bcd002de8/53998faf-9f33-44fc-8285-8088df858882_1691423106.jpeg", "category": "Other" }
+  { "id": 22, "name": "Pot Noodle", "price": 0.90, "img": "https://digitalcontent.api.tesco.com/v2/media/ghs/7caee324-879f-45eb-97b1-ff0bcd002de8/53998faf-9f33-44fc-8285-8088df858882_1691423106.jpeg", "category": "Other" }
 ]
