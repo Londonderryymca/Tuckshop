@@ -3,6 +3,7 @@
 <head>
     <title>Tuckshop POS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081918.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Hind+Guntur:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { --brand-grey: #354348; --brand-green: #93c022; --brand-red: #e4012c; --background: #f8f9fa; }
@@ -18,13 +19,12 @@
         .price-tag { color: var(--brand-green); font-weight: 600; }
         .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
         
-        /* The Dynamic Box */
         .status-box { padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 15px; transition: 0.3s; border: 2px solid rgba(0,0,0,0.1); }
         .status-green { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
         .status-red { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
         
         .pos-input { width: 100px; padding: 8px; font-family: 'League Spartan'; border: 1px solid #ccc; font-size: 22px; text-align: center; border-radius: 4px; margin: 10px 0; }
-        .remaining-val { font-weight: bold; font-size: 2em; display: block; }
+        .remaining-val { font-weight: bold; font-size: 2.2em; display: block; }
         
         .cash-btns { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
         .cash-btn { background: var(--brand-grey); color: white; border: none; padding: 10px 2px; border-radius: 4px; cursor: pointer; font-size: 13px; font-family: 'League Spartan'; }
@@ -46,7 +46,7 @@
     <h2>Checkout</h2>
     
     <div id="display-box" class="status-box status-green">
-        <b>Money Handed Over:</b><br>
+        <b>Customer Money:</b><br>
         £<input type="number" step="0.10" value="0.00" class="pos-input" id="cash-input" oninput="updateCalculations()">
         <div class="cash-btns">
             <button class="cash-btn" onclick="setCash(0.5)">50p</button>
@@ -55,7 +55,7 @@
             <button class="cash-btn" onclick="setCash(5)">£5</button>
         </div>
         <hr style="margin: 15px 0; opacity: 0.2;">
-        <span id="label-text" style="font-weight:600;">CHANGE TO GIVE:</span>
+        <span id="label-text" style="font-weight:600;">MONEY LEFT:</span>
         <span id="remaining-val" class="remaining-val">£0.00</span>
     </div>
 
@@ -63,7 +63,7 @@
 
     <div style="border-top: 2px solid #eee; padding-top: 10px;">
         <div class="summary-row">
-            <span>Items Total:</span><h3 id="total-display">£0.00</h3>
+            <span>Total Items:</span><h3 id="total-display">£0.00</h3>
         </div>
         <div class="summary-row" style="color: var(--brand-green); font-weight: bold; border-top: 1px solid #f0f0f0; margin-top: 5px; padding-top: 5px;">
             <span>Change Due:</span><h3 id="change-summary">£0.00</h3>
@@ -143,7 +143,7 @@
             label.innerText = "OVER BUDGET BY:";
             displayBox.className = 'status-box status-red';
         } else {
-            label.innerText = "CHANGE TO GIVE:";
+            label.innerText = "MONEY LEFT:";
             displayBox.className = 'status-box status-green';
         }
 
