@@ -7,23 +7,29 @@
     <style>
         :root { --brand-grey: #354348; --brand-green: #93c022; --brand-red: #e4012c; --background: #f8f9fa; }
         body { font-family: 'Hind Guntur', sans-serif; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; background: var(--background); color: var(--brand-grey); }
-        h2, h3, b, .btn { font-family: 'League Spartan', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
-        .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; flex: 2; }
-        .item-card { background: white; padding: 15px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; }
+        h2, h3, b, .btn, .cat-header { font-family: 'League Spartan', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .menu-container { flex: 2; min-width: 350px; }
+        .cat-section { margin-bottom: 30px; }
+        .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; color: var(--brand-grey); font-size: 1.2em; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+        .item-card { background: white; padding: 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; }
         .item-card:active { transform: translateY(2px); border-bottom: 0; }
-        .price-tag { color: var(--brand-green); font-weight: 600; font-size: 1.1em; }
-        .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .price-tag { color: var(--brand-green); font-weight: 600; }
+        
+        .receipt { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 2px; border-top: 8px solid var(--brand-grey); box-shadow: 0 10px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
         .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; color: white; }
         .btn-pay { background: var(--brand-green); }
         .btn-clear { background: var(--brand-red); margin-top: 5px; font-size: 12px; opacity: 0.8; }
         .btn-report { background: var(--brand-grey); margin-top: 40px; }
-        #cart-items { min-height: 120px; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
+        #cart-items { min-height: 80px; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
         .out-of-stock { opacity: 0.3; grayscale: 1; pointer-events: none; }
     </style>
 </head>
 <body>
 
-<div class="menu" id="menu">Loading items...</div>
+<div class="menu-container" id="menu-container">Loading Tuckshop...</div>
 
 <div class="receipt">
     <h2>Order Summary</h2>
@@ -43,30 +49,46 @@
     let itemsSoldList = [];
     let cart = [];
     let cartTotal = 0;
+    const categories = ["Sweets", "Drinks", "Crisps", "Other", "Pick n Mix"];
 
-    // Load data from the products.json file
     async function loadInventory() {
         try {
             const response = await fetch('products.json');
             inventory = await response.json();
             renderMenu();
         } catch (error) {
-            document.getElementById('menu').innerText = "Error loading menu. Check products.json file.";
+            document.getElementById('menu-container').innerText = "Error loading products.json";
         }
     }
 
     function renderMenu() {
-        const menuDiv = document.getElementById('menu');
-        menuDiv.innerHTML = '';
-        inventory.forEach(item => {
-            const card = document.createElement('div');
-            card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''}`;
-            card.innerHTML = `<div style="font-size: 40px; margin-bottom:10px;">${item.img}</div>
-                              <b>${item.name}</b><br>
-                              <span class="price-tag">$${item.price.toFixed(2)}</span><br>
-                              <small style="color: #999">Stock: ${item.stock}</small>`;
-            card.onclick = () => addToCart(item);
-            menuDiv.appendChild(card);
+        const container = document.getElementById('menu-container');
+        container.innerHTML = '';
+
+        categories.forEach(cat => {
+            const section = document.createElement('div');
+            section.className = 'cat-section';
+            section.innerHTML = `<div class="cat-header">${cat}</div>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+
+            const catItems = inventory.filter(i => i.category === cat);
+            catItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `item-card ${item.stock <= 0 ? 'out-of-stock' : ''}`;
+                card.innerHTML = `<div style="font-size: 30px; margin-bottom:5px;">${item.img}</div>
+                                  <b>${item.name}</b><br>
+                                  <span class="price-tag">$${item.price.toFixed(2)}</span><br>
+                                  <small style="color: #999">Stock: ${item.stock}</small>`;
+                card.onclick = () => addToCart(item);
+                grid.appendChild(card);
+            });
+
+            if (catItems.length > 0) {
+                section.appendChild(grid);
+                container.appendChild(section);
+            }
         });
     }
 
@@ -102,7 +124,7 @@
 
     function downloadReport() {
         let report = `TUCKSHOP SALES REPORT\nDate: ${new Date().toLocaleString()}\n==========================\nTOTAL REVENUE: $${sessionTotalSales.toFixed(2)}\nTOTAL ITEMS SOLD: ${itemsSoldList.length}\n\nINVENTORY STATUS:\n`;
-        inventory.forEach(i => { report += `- ${i.name}: ${i.stock} remaining\n`; });
+        inventory.forEach(i => { report += `- [${i.category}] ${i.name}: ${i.stock} remaining\n`; });
         const blob = new Blob([report], { type: 'text/plain' });
         const anchor = document.createElement('a');
         anchor.download = `tuckshop-report.txt`;
