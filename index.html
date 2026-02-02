@@ -14,14 +14,11 @@
         .cat-header { border-bottom: 2px solid var(--brand-grey); margin-bottom: 15px; padding-bottom: 5px; font-size: 1.2em; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
         
-        /* Item Card */
         .item-card { background: white; padding: 12px 12px 40px 12px; border-radius: 4px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; transition: 0.1s; position: relative; overflow: hidden; }
         .item-card:active { transform: translateY(1px); }
         
-        /* Count Badge */
         .count-badge { position: absolute; top: 5px; right: 5px; background: var(--brand-red); color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan'; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
         
-        /* Large Remove Button */
         .remove-label { position: absolute; bottom: 0; left: 0; right: 0; background: #e0e0e0; color: #555; font-family: 'League Spartan'; font-size: 13px; padding: 10px 0; border-top: 1px solid #ccc; font-weight: bold; transition: 0.1s; z-index: 3; }
         .remove-label:active { background: var(--brand-red); color: white; }
 
@@ -73,8 +70,8 @@
 
     <div style="border-top: 2px solid #eee; padding-top: 10px;">
         <div class="summary-row"><span>Total Items:</span><h3 id="total-display">£0.00</h3></div>
-        <div class="summary-row" style="color: var(--brand-green); font-weight: bold; border-top: 1px solid #f0f0f0; margin-top: 5px; padding-top: 5px;">
-            <span>Change Due:</span><h3 id="change-summary">£0.00</h3>
+        <div id="summary-change-row" class="summary-row" style="color: var(--brand-green); font-weight: bold; border-top: 1px solid #f0f0f0; margin-top: 5px; padding-top: 5px;">
+            <span id="summary-change-label">Change Due:</span><h3 id="change-summary">£0.00</h3>
         </div>
     </div>
 
@@ -106,28 +103,18 @@
         categories.forEach(cat => {
             const catItems = inventory.filter(i => i.category === cat);
             if (catItems.length === 0) return;
-
             const section = document.createElement('div');
             section.className = 'cat-section';
             section.innerHTML = `<div class="cat-header">${cat}</div>`;
             const grid = document.createElement('div');
             grid.className = 'grid';
-
             catItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 const currentCount = counts[item.name] || 0;
-                
                 const countBadge = currentCount > 0 ? `<div class="count-badge">${currentCount}</div>` : '';
                 const removeLabel = currentCount > 0 ? `<div class="remove-label" onclick="event.stopPropagation(); removeFromCart('${item.name}')">REMOVE ONE</div>` : '';
-                
-                card.innerHTML = `
-                    ${countBadge}
-                    <img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Item'">
-                    <b>${item.name}</b><br>
-                    <span class="price-tag">£${item.price.toFixed(2)}</span>
-                    ${removeLabel}
-                `;
+                card.innerHTML = `${countBadge}<img src="${item.img}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=Item'"><b>${item.name}</b><br><span class="price-tag">£${item.price.toFixed(2)}</span>${removeLabel}`;
                 card.onclick = () => addToCart(item.name);
                 grid.appendChild(card);
             });
@@ -135,73 +122,73 @@
         });
     }
 
-    function addToCart(name) {
-        cart.push(name);
-        updateCalculations();
-        renderMenu();
-    }
-
-    function removeFromCart(name) {
-        const index = cart.lastIndexOf(name);
-        if (index > -1) cart.splice(index, 1);
-        updateCalculations();
-        renderMenu();
-    }
-
-    function setCash(amount) {
-        document.getElementById('cash-input').value = amount.toFixed(2);
-        updateCalculations();
-    }
+    function addToCart(name) { cart.push(name); updateCalculations(); renderMenu(); }
+    function removeFromCart(name) { const index = cart.lastIndexOf(name); if (index > -1) cart.splice(index, 1); updateCalculations(); renderMenu(); }
+    function setCash(amount) { document.getElementById('cash-input').value = amount.toFixed(2); updateCalculations(); }
 
     function updateCalculations() {
         let total = 0;
-        const groupedCart = {};
-        
         cart.forEach(name => {
             const item = inventory.find(i => i.name === name);
-            if (item) {
-                total += item.price;
-                if (!groupedCart[name]) { groupedCart[name] = { price: item.price, count: 0 }; }
-                groupedCart[name].count++;
-            }
+            if (item) total += item.price;
         });
 
         const cashIn = parseFloat(document.getElementById('cash-input').value) || 0;
         const remaining = cashIn - total;
-
         document.getElementById('total-display').innerText = `£${total.toFixed(2)}`;
-        document.getElementById('change-summary').innerText = `£${Math.max(0, remaining).toFixed(2)}`;
         
         const remDisplay = document.getElementById('remaining-val');
         const label = document.getElementById('label-text');
         const displayBox = document.getElementById('display-box');
+        const summaryRow = document.getElementById('summary-change-row');
+        const summaryLabel = document.getElementById('summary-change-label');
+        const summaryVal = document.getElementById('change-summary');
         
         remDisplay.innerText = `£${Math.abs(remaining).toFixed(2)}`;
+        summaryVal.innerText = `£${Math.abs(remaining).toFixed(2)}`;
         
         if (remaining < 0) {
             label.innerText = "OVER BUDGET BY:";
             displayBox.className = 'status-box status-red';
+            summaryRow.style.color = "var(--brand-red)";
+            summaryLabel.innerText = "OVER BUDGET:";
         } else {
             label.innerText = "MONEY LEFT:";
             displayBox.className = 'status-box status-green';
+            summaryRow.style.color = "var(--brand-green)";
+            summaryLabel.innerText = "CHANGE DUE:";
         }
+
+        const groupedCart = {};
+        cart.forEach(name => {
+            const item = inventory.find(i => i.name === name);
+            if (!groupedCart[name]) groupedCart[name] = { price: item.price, count: 0 };
+            groupedCart[name].count++;
+        });
 
         const cartDiv = document.getElementById('cart-items');
         cartDiv.innerHTML = '';
         for (const [name, data] of Object.entries(groupedCart)) {
             const line = document.createElement('div');
             line.className = 'cart-line';
-            line.innerHTML = `
-                <span><b>${data.count}x</b> ${name}</span>
-                <span>£${(data.price * data.count).toFixed(2)} 
-                <button class="remove-btn-small" onclick="removeFromCart('${name}')">✕</button></span>
-            `;
+            line.innerHTML = `<span><b>${data.count}x</b> ${name}</span><span>£${(data.price * data.count).toFixed(2)} <button class="remove-btn-small" onclick="removeFromCart('${name}')">✕</button></span>`;
             cartDiv.appendChild(line);
         }
     }
 
     function completeSale() {
         if(cart.length === 0) return;
+        
+        // BUDGET WARNING LOCK
+        let total = 0;
+        cart.forEach(name => { total += inventory.find(i => i.name === name).price; });
+        const cashIn = parseFloat(document.getElementById('cash-input').value) || 0;
+        
+        if (cashIn - total < 0) {
+            alert("⚠️ ERROR: The customer is over budget! Please remove an item or adjust the cash amount before finishing.");
+            return;
+        }
+
         cart.forEach(name => {
             const item = inventory.find(i => i.name === name);
             sessionSales.push({ name: item.name, price: item.price });
@@ -209,12 +196,7 @@
         resetCart();
     }
 
-    function resetCart() { 
-        cart = []; 
-        document.getElementById('cash-input').value = "0.00";
-        updateCalculations(); 
-        renderMenu();
-    }
+    function resetCart() { cart = []; document.getElementById('cash-input').value = "0.00"; updateCalculations(); renderMenu(); }
 
     function downloadSalesReport() {
         if (sessionSales.length === 0) return alert("No sales recorded!");
@@ -229,7 +211,6 @@
         anchor.href = URL.createObjectURL(blob);
         anchor.click();
     }
-
     loadInventory();
 </script>
 </body>
