@@ -2,7 +2,7 @@
   { "id": 1, "name": "Haribos", "price": 0.15, "img": "https://ik.imagekit.io/pimberly/595e406f0f15f30010780448/tr:w-1000,h-1000,cm-pad_resize/6f465127/611ce0a9423ec074d00001e1/HB91191_01.jpg", "category": "Sweets" },
   { "id": 2, "name": "Popping Candy", "price": 0.20, "img": "https://www.snappyshopper.co.uk/_ipx/f_webp,fit_contain,b_%23FFFFFF,w_960/https://images.snappyshopper.co.uk/uploads/images/products/xhdpi_2x/brandbank-5031396044519-1fa89898b7a42f1ce323dd67d6bb4783.jpeg", "category": "Sweets" },
   { "id": 3, "name": "Love Hearts Lipstick", "price": 0.25, "img": "https://www.keepitsweet.co.uk/images/Lipstick-2SWI-CAN-LIP.jpg", "category": "Sweets" },
-  { "id": 4, "name": "Milkybar Kids", "price": 0.30, "img": "https://digitalcontent.api.tesco.com/v2/media/ghs/3e0e05b7-9278-456a-baa8-5bb33a772d80/d8b5ca66-efc6-46c5-89fb-e4500a8c3b21_879531842.jpeg", "category": "Sweets" },
+  { "id": 4, "name": "Milkybar Kids", "price": 0.30, "img": "https://www.nestle-confectionery.co.uk/sites/default/files/2025-02/8000300430578-milkybar-kid-white-chocolate-bar-12g-mobile.png", "category": "Sweets" },
   { "id": 5, "name": "Freddo", "price": 0.35, "img": "https://digitalcontent.api.tesco.com/v2/media/ghs/52994d9c-138c-4d6b-8f55-61eef9394239/f15434b7-2d05-41f7-aeb8-9e80e6b0dda6_317774107.jpeg", "category": "Sweets" },
   { "id": 6, "name": "Kinder Bar", "price": 0.35, "img": "https://www.caresupplystore.co.uk/images/big/Image_48.aspx.html.jpeg", "category": "Sweets" },
   { "id": 7, "name": "Milkyway", "price": 0.40, "img": "https://www.thomasridley.co.uk/media/catalog/product/cache/91bb4c304d36e1a443560a32c2e6dc1e/0/2/02160.jpg", "category": "Sweets" },
